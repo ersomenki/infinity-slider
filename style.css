@@ -27,7 +27,7 @@
     border: 1px solid black;
     margin: 0 auto;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; */
     border-radius: 8px;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4),
       -2px -2px 4px rgba(255, 255, 255, 0.4);

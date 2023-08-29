@@ -1,65 +1,117 @@
-let slides = document.querySelectorAll(".slide-single");
-const slider = document.querySelector(".slider");
+let slides = document.querySelectorAll(".slide-single"),
+  slider = [];
 
-const nextBtn = document.querySelector(".next");
-const prevBtn = document.querySelector(".prev");
+const nextBtn = document.querySelector(".next"),
+  prevBtn = document.querySelector(".prev");
+
+let offset = 1,
+  offset2 = -1;
 
 let isAnimating = false;
 
-let step = 0;
+for (let i = 0; i < slides.length; i++) {
+  slider[i] = slides[i].src;
+  slides[i].remove();
+}
+
+let step = 0,
+  prevStep = slider.length - 1,
+  nextStep = step + 1;
 
 function init() {
-    slides.forEach((slide, index) => {
-        slide.style.left = `${index * 650}px`; // Position the slides initially
-    });
+  let img = document.createElement("img");
+  img.src = slider[step];
+  img.classList.add("slide-single");
+  document.querySelector(".slider").prepend(img);
+  offset = 1;
 }
 
-function move(direction) {
-    if (isAnimating) {
-        return;
-    }
-    
-    isAnimating = true;
-    let offset = direction === 'next' ? -650 : 650;
+function draw() {
+  let imgPrev = document.createElement("img"),
+    imgNext = document.createElement("img");
 
-    slides.forEach((slide, index) => {
-        let pos = parseFloat(slide.style.left);
-        let newPos = pos + offset;
-        let id = setInterval(frame, 1);
-
-        function frame() {
-            if ((offset > 0 && pos >= newPos) || (offset < 0 && pos <= newPos)) {
-                clearInterval(id);
-                slide.style.left = `${newPos}px`;
-                isAnimating = false;
-
-                if (step === slides.length - 1 && direction === 'next') {
-                    resetSlides();
-                } else if (step === 0 && direction === 'prev') {
-                    resetSlides(true);
-                }
-            } else {
-                pos += offset / 10;
-                slide.style.left = `${pos}px`;
-            }
-        }
-    });
-
-    step += (direction === 'next' ? 1 : -1);
-    if (step >= slides.length) {
-        step = 0;
-    } else if (step < 0) {
-        step = slides.length - 1;
-    }
+  imgPrev.src = slider[prevStep];
+  imgNext.src = slider[nextStep];
+  imgPrev.classList.add("slide-single");
+  imgNext.classList.add("slide-single");
+  imgPrev.style.left = -offset * 650 + "px";
+  imgNext.style.left = offset * 650 + "px";
+  document.querySelector(".slider").prepend(imgPrev);
+  document.querySelector(".slider").append(imgNext);
 }
 
-function resetSlides(toEnd = false) {
-    slides.forEach((slide, index) => {
-        slide.style.left = `${(index - (toEnd ? slides.length : -1)) * 650}px`;
-    });
-    step = toEnd ? slides.length - 1 : 0;
+function next() {
+  if (isAnimating) {
+    return;
+  }
+  isAnimating = true;
+
+  let slides2 = document.querySelectorAll(".slide-single");
+  for (let i = 0; i < slides2.length; i++) {
+    slides2[i].style.left = offset2 * 650 - 650 + "px";
+    offset2++;
+  }
+  step++;
+  setTimeout(function () {
+    slides2[0].remove();
+    slides2[1].remove();
+
+    if (step === slider.length) {
+      prevStep = slider.length - 1;
+      step = 0;
+      nextStep = 1;
+    } else if (step === 0) {
+      prevStep = slider.length - 1;
+      nextStep = step + 1;
+    } else {
+      prevStep = step - 1;
+      nextStep = step + 1;
+    }
+    if (nextStep === slider.length) {
+      nextStep = 0;
+    }
+    draw();
+    isAnimating = false;
+  }, 500);
+  offset2 = -1;
+}
+
+function prev() {
+  if (isAnimating) {
+    return;
+  }
+  isAnimating = true;
+  let slides2 = document.querySelectorAll(".slide-single");
+  for (let i = 0; i < slides2.length; i++) {
+    slides2[i].style.left = offset2 * 650 + 650 + "px";
+    offset2++;
+  }
+  step--;
+  setTimeout(() => {
+    slides2[1].remove();
+    slides2[2].remove();
+
+    if (step < 0) {
+      step = slider.length - 1;
+      prevStep = step - 1;
+      nextStep = 0;
+    } else if (step === slider.length - 1) {
+      prevStep = step - 1;
+      nextStep = 0;
+    } else if (step === 0) {
+      prevStep = slider.length - 1;
+      nextStep = step + 1;
+    } else {
+      prevStep = step - 1;
+      nextStep = step + 1;
+    }
+    draw();
+    isAnimating = false;
+  }, 500);
+  offset2 = -1;
 }
 
 init();
-prevBtn.addEventListener("click", () => move('prev'));
-nextBtn.addEventListener("click", () => move('next'));
+draw();
+prevBtn.addEventListener("click", () => prev());
+nextBtn.addEventListener("click", () => next());
