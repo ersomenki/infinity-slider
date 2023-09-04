@@ -18,7 +18,7 @@ let step = 0,
   prevStep = slider.length - 1,
   nextStep = step + 1;
 
-function init() {
+function createSlide() {
   let img = document.createElement("img");
   img.src = slider[step];
   img.classList.add("slide-single");
@@ -27,91 +27,93 @@ function init() {
 }
 
 function draw() {
-  let imgPrev = document.createElement("img"),
-    imgNext = document.createElement("img");
+  let imgPrev = createImage(slider[prevStep], -offset);
+  let imgNext = createImage(slider[nextStep], offset);
 
-  imgPrev.src = slider[prevStep];
-  imgNext.src = slider[nextStep];
-  imgPrev.classList.add("slide-single");
-  imgNext.classList.add("slide-single");
-  imgPrev.style.left = -offset * 650 + "px";
-  imgNext.style.left = offset * 650 + "px";
   document.querySelector(".slider").prepend(imgPrev);
   document.querySelector(".slider").append(imgNext);
 }
 
-function next() {
+function createImage(src, imgOffset) {
+  let img = document.createElement("img");
+  img.src = src;
+  img.classList.add("slide-single");
+  img.style.left = imgOffset * 650 + "px";
+  return img;
+}
+
+let slideWidth = 650;
+let animationDuration = 500;
+let animationInterval = 10;
+let animationStep = slideWidth / (animationDuration / animationInterval);
+
+function animateSlides(currentSlides, direction) {
+  let offsetChange = direction === "next" ? -animationStep : animationStep;
+  let interval = setInterval(() => {
+    for (let i = 0; i < currentSlides.length; i++) {
+      currentSlides[i].style.left =
+        parseFloat(currentSlides[i].style.left) + offsetChange + "px";
+    }
+  }, animationInterval);
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      clearInterval(interval);
+      resolve();
+    }, animationDuration);
+  });
+}
+
+async function next() {
   if (isAnimating) {
     return;
   }
   isAnimating = true;
 
-  let slides2 = document.querySelectorAll(".slide-single");
-  for (let i = 0; i < slides2.length; i++) {
-    slides2[i].style.left = offset2 * 650 - 650 + "px";
-    offset2++;
-  }
+  let currentSlides = document.querySelectorAll(".slide-single");
+  await animateSlides(currentSlides, "next");
+
+  
+
   step++;
-  setTimeout(function () {
-    slides2[0].remove();
-    slides2[1].remove();
+  if (step >= slider.length) {
+    step = 0;
+  }
 
-    if (step === slider.length) {
-      prevStep = slider.length - 1;
-      step = 0;
-      nextStep = 1;
-    } else if (step === 0) {
-      prevStep = slider.length - 1;
-      nextStep = step + 1;
-    } else {
-      prevStep = step - 1;
-      nextStep = step + 1;
-    }
-    if (nextStep === slider.length) {
-      nextStep = 0;
-    }
-    draw();
-    isAnimating = false;
-  }, 500);
-  offset2 = -1;
+  prevStep = step === 0 ? slider.length - 1 : step - 1;
+  nextStep = step === slider.length - 1 ? 0 : step + 1;
+
+  draw();
+  isAnimating = false;
 }
 
-function prev() {
+async function prev() {
   if (isAnimating) {
     return;
   }
   isAnimating = true;
-  let slides2 = document.querySelectorAll(".slide-single");
-  for (let i = 0; i < slides2.length; i++) {
-    slides2[i].style.left = offset2 * 650 + 650 + "px";
-    offset2++;
-  }
-  step--;
-  setTimeout(() => {
-    slides2[1].remove();
-    slides2[2].remove();
 
-    if (step < 0) {
-      step = slider.length - 1;
-      prevStep = step - 1;
-      nextStep = 0;
-    } else if (step === slider.length - 1) {
-      prevStep = step - 1;
-      nextStep = 0;
-    } else if (step === 0) {
-      prevStep = slider.length - 1;
-      nextStep = step + 1;
-    } else {
-      prevStep = step - 1;
-      nextStep = step + 1;
-    }
-    draw();
-    isAnimating = false;
-  }, 500);
-  offset2 = -1;
+  let currentSlides = document.querySelectorAll(".slide-single");
+  await animateSlides(currentSlides, "prev");
+
+  
+
+  step--;
+  if (step < 0) {
+    step = slider.length - 1;
+  }
+
+  prevStep = step === 0 ? slider.length - 1 : step - 1;
+  nextStep = step === slider.length - 1 ? 0 : step + 1;
+
+  draw();
+  isAnimating = false;
 }
 
-init();
+createSlide();
 draw();
+
+
+
 prevBtn.addEventListener("click", () => prev());
 nextBtn.addEventListener("click", () => next());

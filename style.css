@@ -12,7 +12,10 @@
   .nav {
     margin-top: 25px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+  }
+  .buttons {
+    display: flex;
   }
   button {
     width: 70px;
