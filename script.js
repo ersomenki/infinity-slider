@@ -64,6 +64,17 @@ function animateSlides(currentSlides, direction) {
   });
 }
 
+function updateDots() {
+  const dots = document.querySelectorAll(".slider-dots__item");
+  dots.forEach((dot, index) => {
+    if (index === step) {
+      dot.classList.add("active");
+    } else {
+      dot.classList.remove("active");
+    }
+  });
+}
+
 async function next() {
   if (isAnimating) {
     return;
@@ -73,7 +84,8 @@ async function next() {
   let currentSlides = document.querySelectorAll(".slide-single");
   await animateSlides(currentSlides, "next");
 
-  
+  currentSlides[0].remove();
+  currentSlides[1].remove();
 
   step++;
   if (step >= slider.length) {
@@ -82,7 +94,7 @@ async function next() {
 
   prevStep = step === 0 ? slider.length - 1 : step - 1;
   nextStep = step === slider.length - 1 ? 0 : step + 1;
-
+  updateDots();
   draw();
   isAnimating = false;
 }
@@ -96,7 +108,8 @@ async function prev() {
   let currentSlides = document.querySelectorAll(".slide-single");
   await animateSlides(currentSlides, "prev");
 
-  
+  currentSlides[1].remove();
+  currentSlides[2].remove();
 
   step--;
   if (step < 0) {
@@ -105,15 +118,103 @@ async function prev() {
 
   prevStep = step === 0 ? slider.length - 1 : step - 1;
   nextStep = step === slider.length - 1 ? 0 : step + 1;
-
+  
+  updateDots();
   draw();
   isAnimating = false;
 }
 
+
+
+function createDots() {
+  const dotsContainer = document.querySelector(".slider-dots");
+
+  for (let i = 0; i < slider.length; i++) {
+    const dot = document.createElement("div");
+    dot.classList.add("slider-dots__item");
+    dotsContainer.appendChild(dot);
+
+    dot.addEventListener("click", () => {
+      if (i < step) {
+        goToSlide(i, "prev");
+      } else if (i > step) {
+        goToSlide(i, "next");
+      }
+    });
+  }
+  dotsContainer.children[0].classList.add("active");
+}
+
+createDots();
+
+async function goToSlide(targetStep) {
+  if (isAnimating) {
+    return;
+  }
+  isAnimating = true;
+
+  const currentSlides = document.querySelectorAll(".slide-single");
+
+  if (targetStep > step) {
+
+    await animateSlides(currentSlides, "next");
+      currentSlides[0].remove();
+      currentSlides[1].remove();
+      
+      step++;
+
+      if (step >= slider.lenght) {
+        step = 0;
+      }
+
+      prevStep = step === 0 ? slider.length - 1 : step - 1;
+      nextStep = step === slider.length - 1 ? 0 : step + 1;
+      updateDots();
+      draw();
+
+      const dots = document.querySelectorAll(".slider-dots__item");
+      dots.forEach((dot, index) => {
+        if (index === step) {
+          dot.classList.add("active");
+        } else {
+          dot.classList.remove("active");
+        }
+      });
+
+      isAnimating = false;
+  }  else {    
+    await animateSlides(currentSlides, "prev");
+
+      currentSlides[1].remove();
+      currentSlides[2].remove();
+
+      step--;
+      if (step < 0) {
+        step = slider.length - 1;
+      }
+
+      prevStep = step === 0 ? slider.length - 1 : step - 1;
+      nextStep = step === slider.length - 1 ? 0 : step + 1;
+
+      updateDots();
+      draw();
+
+      const dots = document.querySelectorAll(".slider-dots__item");
+      dots.forEach((dot, index) => {
+        if (index === step) {
+          dot.classList.add("active");
+        } else {
+          dot.classList.remove("active");
+        }
+      });
+
+      isAnimating = false;
+    
+  }
+}
+
 createSlide();
 draw();
-
-
 
 prevBtn.addEventListener("click", () => prev());
 nextBtn.addEventListener("click", () => next());
