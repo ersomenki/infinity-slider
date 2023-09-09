@@ -1,220 +1,103 @@
-let slides = document.querySelectorAll(".slide-single"),
-  slider = [];
+document.addEventListener('DOMContentLoaded', () => {
+  const previousButton = document.getElementById('previousButton');
+  const nextButton = document.getElementById('nextButton');
+  const sliderContent = document.querySelector('.slider-content');
+  const slides = sliderContent.querySelectorAll('img');
+  const sliderDots = document.querySelector('.slider-dots');
 
-const nextBtn = document.querySelector(".next"),
-  prevBtn = document.querySelector(".prev");
+  const copyOfLastSlide = slides[slides.length - 1].parentElement.cloneNode(true);
+  const copyOfFirstSlide = slides[0].parentElement.cloneNode(true);
 
-let offset = 1,
-  offset2 = -1;
+  sliderContent.prepend(copyOfLastSlide);
+  sliderContent.append(copyOfFirstSlide);
 
-let isAnimating = false;
+  const animationDuration = 500;
 
-for (let i = 0; i < slides.length; i++) {
-  slider[i] = slides[i].src;
-  slides[i].remove();
-}
+  let currentIndex = 0;
+  let dots = [];
+  let activeDot;
+  let isAnimating = false;
 
-let step = 0,
-  prevStep = slider.length - 1,
-  nextStep = step + 1;
+  drawDots();
+  goToSlide(0);
+  previousButton.addEventListener('click', () => goToSlide(currentIndex - 1));
+  nextButton.addEventListener('click', () => goToSlide(currentIndex + 1));
 
-function createSlide() {
-  let img = document.createElement("img");
-  img.src = slider[step];
-  img.classList.add("slide-single");
-  document.querySelector(".slider").prepend(img);
-  offset = 1;
-}
-
-function draw() {
-  let imgPrev = createImage(slider[prevStep], -offset);
-  let imgNext = createImage(slider[nextStep], offset);
-
-  document.querySelector(".slider").prepend(imgPrev);
-  document.querySelector(".slider").append(imgNext);
-}
-
-function createImage(src, imgOffset) {
-  let img = document.createElement("img");
-  img.src = src;
-  img.classList.add("slide-single");
-  img.style.left = imgOffset * 650 + "px";
-  return img;
-}
-
-let slideWidth = 650;
-let animationDuration = 500;
-let animationInterval = 10;
-let animationStep = slideWidth / (animationDuration / animationInterval);
-
-function animateSlides(currentSlides, direction) {
-  let offsetChange = direction === "next" ? -animationStep : animationStep;
-  let interval = setInterval(() => {
-    for (let i = 0; i < currentSlides.length; i++) {
-      currentSlides[i].style.left =
-        parseFloat(currentSlides[i].style.left) + offsetChange + "px";
+  function goToSlide(index) {
+    if (isAnimating) {
+      return;
     }
-  }, animationInterval);
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      clearInterval(interval);
-      resolve();
-    }, animationDuration);
-  });
-}
+    isAnimating = true;
 
-function updateDots() {
-  const dots = document.querySelectorAll(".slider-dots__item");
-  dots.forEach((dot, index) => {
-    if (index === step) {
-      dot.classList.add("active");
+    if (index < 0) {
+      currentIndex = slides.length - 1;
+    } else if (index > slides.length - 1) {
+      currentIndex = 0;
     } else {
-      dot.classList.remove("active");
+      currentIndex = index;
     }
-  });
-}
+    
+    console.log(currentIndex)
 
-async function next() {
-  if (isAnimating) {
-    return;
-  }
-  isAnimating = true;
+    updateSlider((100 + index * 100) * -1);
 
-  let currentSlides = document.querySelectorAll(".slide-single");
-  await animateSlides(currentSlides, "next");
-
-  currentSlides[0].remove();
-  currentSlides[1].remove();
-
-  step++;
-  if (step >= slider.length) {
-    step = 0;
-  }
-
-  prevStep = step === 0 ? slider.length - 1 : step - 1;
-  nextStep = step === slider.length - 1 ? 0 : step + 1;
-  updateDots();
-  draw();
-  isAnimating = false;
-}
-
-async function prev() {
-  if (isAnimating) {
-    return;
-  }
-  isAnimating = true;
-
-  let currentSlides = document.querySelectorAll(".slide-single");
-  await animateSlides(currentSlides, "prev");
-
-  currentSlides[1].remove();
-  currentSlides[2].remove();
-
-  step--;
-  if (step < 0) {
-    step = slider.length - 1;
-  }
-
-  prevStep = step === 0 ? slider.length - 1 : step - 1;
-  nextStep = step === slider.length - 1 ? 0 : step + 1;
-  
-  updateDots();
-  draw();
-  isAnimating = false;
-}
-
-
-
-function createDots() {
-  const dotsContainer = document.querySelector(".slider-dots");
-
-  for (let i = 0; i < slider.length; i++) {
-    const dot = document.createElement("div");
-    dot.classList.add("slider-dots__item");
-    dotsContainer.appendChild(dot);
-
-    dot.addEventListener("click", () => {
-      if (i < step) {
-        goToSlide(i, "prev");
-      } else if (i > step) {
-        goToSlide(i, "next");
-      }
-    });
-  }
-  dotsContainer.children[0].classList.add("active");
-}
-
-createDots();
-
-async function goToSlide(targetStep) {
-  if (isAnimating) {
-    return;
-  }
-  isAnimating = true;
-
-  const currentSlides = document.querySelectorAll(".slide-single");
-
-  if (targetStep > step) {
-
-    await animateSlides(currentSlides, "next");
-      currentSlides[0].remove();
-      currentSlides[1].remove();
+    setTimeout(() => {
       
-      step++;
 
-      if (step >= slider.lenght) {
-        step = 0;
+      if (index === -1) {
+        updateSlider(slides.length * 100 * -1);
       }
 
-      prevStep = step === 0 ? slider.length - 1 : step - 1;
-      nextStep = step === slider.length - 1 ? 0 : step + 1;
-      updateDots();
-      draw();
-
-      const dots = document.querySelectorAll(".slider-dots__item");
-      dots.forEach((dot, index) => {
-        if (index === step) {
-          dot.classList.add("active");
-        } else {
-          dot.classList.remove("active");
-        }
-      });
-
-      isAnimating = false;
-  }  else {    
-    await animateSlides(currentSlides, "prev");
-
-      currentSlides[1].remove();
-      currentSlides[2].remove();
-
-      step--;
-      if (step < 0) {
-        step = slider.length - 1;
+      if (index === slides.length) {
+        updateSlider(-100);
       }
 
-      prevStep = step === 0 ? slider.length - 1 : step - 1;
-      nextStep = step === slider.length - 1 ? 0 : step + 1;
-
-      updateDots();
-      draw();
-
-      const dots = document.querySelectorAll(".slider-dots__item");
-      dots.forEach((dot, index) => {
-        if (index === step) {
-          dot.classList.add("active");
-        } else {
-          dot.classList.remove("active");
-        }
-      });
-
       isAnimating = false;
+      console.log(index);
+      setActiveDot(dots[currentIndex]);
+    }, animationDuration);
+  }
+  
+  function updateSlider(value) {   
+    const initialValue = parseFloat(sliderContent.style.transform.replace('translateX(', '').replace('%)', ''));
+    const targetValue = value;
+    const steps = 50;
+    const stepValue = (targetValue - initialValue) / steps;
+    let currentStep = 0;
+    const interval = setInterval(() => {
+      if (currentStep < steps) {
+        const newValue = initialValue + stepValue * currentStep;
+        sliderContent.style.transform = `translateX(${newValue}%)`;
+        currentStep++;
+      } else {
+        sliderContent.style.transform = `translateX(${targetValue}%)`;
+        clearInterval(interval);
+      }
+    },animationDuration / steps);
+
     
   }
-}
 
-createSlide();
-draw();
+  function setActiveDot(dot) {
+    if (activeDot) {
+      activeDot.classList.remove('active');
+    }
 
-prevBtn.addEventListener("click", () => prev());
-nextBtn.addEventListener("click", () => next());
+    activeDot = dot;
+
+    activeDot.classList.add('active');
+  }
+
+  function drawDots() {
+    slides.forEach((_, index) => {
+      const element = Object.assign(document.createElement('div'), {
+        onclick: () => goToSlide(index),
+        className: 'slider-dots-item'
+      });
+
+      dots.push(element);
+      sliderDots.append(element);
+    });
+  }
+});
