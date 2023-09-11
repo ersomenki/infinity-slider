@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   sliderContent.prepend(copyOfLastSlide);
   sliderContent.append(copyOfFirstSlide);
 
+  const slideWidthPercent = 100;
   const animationDuration = 500;
-  const durationForClone = 530;
+  const cloneDuration = 530;
 
   let currentIndex = 0;
   let dots = [];
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   drawDots();
   goToSlide(0);
+
   previousButton.addEventListener('click', () => goToSlide(currentIndex - 1));
   nextButton.addEventListener('click', () => goToSlide(currentIndex + 1));
 
@@ -31,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     isAnimating = true;
 
-    updateSlider((100 + index * 100) * -1);
+    updateSlider((slideWidthPercent + index * slideWidthPercent) * -1);
 
     if (index < 0) {
       currentIndex = slides.length - 1;
@@ -44,14 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setTimeout(() => {
       if (index === -1) {
-        updateSliderNoInterval(slides.length * 100 * -1);
+        updateSliderNoInterval(slides.length * slideWidthPercent * -1);
       }
       if (index === slides.length) {
-        updateSliderNoInterval(-100);
+        updateSliderNoInterval(-slideWidthPercent);
       }
       isAnimating = false;
       setActiveDot(dots[currentIndex]);
-    }, durationForClone);
+    }, cloneDuration);
   }
   
   function updateSliderNoInterval(value) {
@@ -59,7 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateSlider(value) {   
-    const initialValue = parseFloat(sliderContent.style.transform.replace('translateX(', '').replace('%)', '')) || 0;
+    const initialValue = 
+    parseFloat(
+      sliderContent.style.transform
+      .replace('translateX(', '')
+      .replace('%)', '')) || 0;
     const targetValue = value;
     const steps = 50;
     const stepValue = (targetValue - initialValue) / steps;
@@ -83,19 +89,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     activeDot = dot;
-
     activeDot.classList.add('active');
   }
 
   function drawDots() {
-    slides.forEach((_, index) => {
-      const element = Object.assign(document.createElement('div'), {
-        onclick: () => goToSlide(index),
+    slides.forEach(() => {
+      const element = Object.assign(document.createElement('div'), {        
         className: 'slider-dots-item'
       });
-
       dots.push(element);
       sliderDots.append(element);
     });
   }
+  sliderDots.addEventListener('click', (event) => {
+    if (!isAnimating && event.target.classList.contains('slider-dots-item')) {
+      const index = dots.indexOf(event.target);
+      if (index !== -1) {
+        goToSlide(index);
+      }
+    }
+  });
 });
