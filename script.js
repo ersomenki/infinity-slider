@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   sliderContent.append(copyOfFirstSlide);
 
   const animationDuration = 500;
+  const durationForClone = 530;
 
   let currentIndex = 0;
   let dots = [];
@@ -30,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     isAnimating = true;
 
+    updateSlider((100 + index * 100) * -1);
+
     if (index < 0) {
       currentIndex = slides.length - 1;
     } else if (index > slides.length - 1) {
@@ -38,29 +41,25 @@ document.addEventListener('DOMContentLoaded', () => {
       currentIndex = index;
     }
     
-    console.log(currentIndex)
-
-    updateSlider((100 + index * 100) * -1);
-
+    
     setTimeout(() => {
-      
-
       if (index === -1) {
-        updateSlider(slides.length * 100 * -1);
+        updateSliderNoInterval(slides.length * 100 * -1);
       }
-
       if (index === slides.length) {
-        updateSlider(-100);
+        updateSliderNoInterval(-100);
       }
-
       isAnimating = false;
-      console.log(index);
       setActiveDot(dots[currentIndex]);
-    }, animationDuration);
+    }, durationForClone);
   }
   
+  function updateSliderNoInterval(value) {
+    sliderContent.style.transform = `translateX(${value}%)`;
+  }
+
   function updateSlider(value) {   
-    const initialValue = parseFloat(sliderContent.style.transform.replace('translateX(', '').replace('%)', ''));
+    const initialValue = parseFloat(sliderContent.style.transform.replace('translateX(', '').replace('%)', '')) || 0;
     const targetValue = value;
     const steps = 50;
     const stepValue = (targetValue - initialValue) / steps;
@@ -70,13 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const newValue = initialValue + stepValue * currentStep;
         sliderContent.style.transform = `translateX(${newValue}%)`;
         currentStep++;
-      } else {
+       } else {
         sliderContent.style.transform = `translateX(${targetValue}%)`;
         clearInterval(interval);
       }
     },animationDuration / steps);
 
-    
   }
 
   function setActiveDot(dot) {
